@@ -1,0 +1,19 @@
+# Core API & ASGI Server
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+
+# Validation & Settings
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+
+# Database & ORM
+sqlalchemy>=2.0.0
+
+# Image & Document Processing
+pillow>=10.0.0
+qrcode>=7.4.2
+
+# Testing & Client
+pytest>=8.0.0
+httpx>=0.27.0
+python-multipart>=0.0.9

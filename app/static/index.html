@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Certificate Generator - AEREO Studio</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header>
+    <div class="brand">
+      <span style="font-size:1.5rem;">📜</span>
+      <span>CertifyHub</span>
+      <span class="brand-badge">AEREO EDITION</span>
+    </div>
+    <div class="nav-links">
+      <a href="/docs" target="_blank" class="nav-btn">📖 Swagger Docs</a>
+      <a href="/redoc" target="_blank" class="nav-btn">📄 ReDoc</a>
+      <a href="/health" target="_blank" class="nav-btn">🩺 Health</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Hero Header -->
+    <div class="hero">
+      <h1>Bulk Certificate Generator</h1>
+      <p>High-throughput, resilient certificate generation engine with fault isolation and verification</p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-generator">⚡ Generate Certificates</button>
+      <button class="tab-btn" data-tab="tab-verify">🔍 Verify Certificate</button>
+      <button class="tab-btn" data-tab="tab-architecture">🏛️ Architecture & Decisions</button>
+    </div>
+
+    <!-- TAB 1: Generator -->
+    <div id="tab-generator" class="tab-pane active">
+      <div class="grid-2">
+        <!-- Left: Form -->
+        <div class="card">
+          <div class="card-title">
+            <span>New Generation Job</span>
+            <button type="button" class="btn-secondary" onclick="loadSampleBatch()">✨ Load Sample Batch</button>
+          </div>
+
+          <form onsubmit="submitJob(event)">
+            <div class="form-group">
+              <label for="event_name">Course / Event Name *</label>
+              <input type="text" id="event_name" required placeholder="e.g. AI & Robotics Bootcamp" value="Autonomous Drone Systems & Computer Vision">
+            </div>
+
+            <div class="form-group">
+              <label for="title">Certificate Title</label>
+              <input type="text" id="title" placeholder="e.g. Certificate of Excellence" value="Certificate of Excellence">
+            </div>
+
+            <div class="grid-2" style="gap:1rem; margin-bottom:1.25rem;">
+              <div>
+                <label for="issuer_name">Issuing Organization</label>
+                <input type="text" id="issuer_name" value="AEREO Academy">
+              </div>
+              <div>
+                <label for="issue_date">Issue Date</label>
+                <input type="date" id="issue_date">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="recipients_input">Recipients (JSON or CSV lines) *</label>
+              <textarea id="recipients_input" required placeholder='JSON format: [{"name": "Jane Doe", "email": "jane@example.com"}]&#10;OR CSV lines: Jane Doe, jane@example.com'></textarea>
+              <div class="form-help">Tip: You can paste JSON array or simple "Name, email" lines. Fault isolation will catch invalid entries without halting valid ones!</div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-primary">
+              🚀 Generate Certificates
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Real-time Job Status & Results -->
+        <div>
+          <div id="statusCard" class="card" style="display:none;">
+            <div class="card-title">
+              <span>Job Progress & Status</span>
+              <span id="jobStatusBadge" class="badge badge-pending">PENDING</span>
+            </div>
+
+            <div class="status-box">
+              <div class="status-header">
+                <span id="jobMessage" style="font-size:0.875rem; color:var(--text-secondary);">Initializing job...</span>
+                <span id="progressText" style="font-weight:700; font-size:0.9rem; color:var(--accent-gold);">0%</span>
+              </div>
+              <div class="progress-track">
+                <div id="progressFill" class="progress-fill"></div>
+              </div>
+
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <div class="stat-val" id="statTotal">0</div>
+                  <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-val" id="statProcessed" style="color:var(--accent-blue);">0</div>
+                  <div class="stat-label">Processed</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-val" id="statSuccess" style="color:var(--success);">0</div>
+                  <div class="stat-label">Successful</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-val" id="statFailure" style="color:var(--danger);">0</div>
+                  <div class="stat-label">Failed</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="zipBtnContainer" style="margin-bottom:1rem; display:flex; gap:0.75rem;"></div>
+
+            <h4 style="font-size:0.95rem; margin-bottom:0.5rem; color:var(--text-secondary);">Generated Certificates:</h4>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Recipient</th>
+                    <th>Certificate Code</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="certificatesTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="initialPlaceholder" class="card" style="text-align:center; padding:3rem 1.5rem; color:var(--text-secondary);">
+            <div style="font-size:3rem; margin-bottom:1rem;">⚡</div>
+            <h3 style="color:var(--text-primary); margin-bottom:0.5rem;">Ready to Process</h3>
+            <p>Click "Load Sample Batch" or fill out the form on the left to start bulk certificate generation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Verification -->
+    <div id="tab-verify" class="tab-pane">
+      <div class="card" style="max-width:650px; margin: 0 auto; text-align:center;">
+        <div class="card-title" style="justify-content:center;">
+          <span>Official Certificate Authenticator</span>
+        </div>
+        <p style="color:var(--text-secondary); margin-bottom:1.5rem;">
+          Enter the unique Certificate ID printed on any certificate (or scanned from the QR code) to verify its authenticity.
+        </p>
+
+        <form onsubmit="verifyCertificate(event)">
+          <div class="form-group">
+            <input type="text" id="verifyCodeInput" placeholder="e.g. AEREO-2026-9B41A82F" style="text-align:center; font-size:1.1rem; letter-spacing:0.05em;" required>
+          </div>
+          <button type="submit" class="btn-primary" style="margin-bottom:1.5rem;">
+            🔍 Authenticate Certificate
+          </button>
+        </form>
+
+        <div id="verificationResult" style="display:none; margin-top:1.5rem;"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Architecture -->
+    <div id="tab-architecture" class="tab-pane">
+      <div class="card" style="max-width:900px; margin: 0 auto;">
+        <div class="card-title">
+          <span>Architectural & Design Justifications</span>
+        </div>
+        <div style="color:var(--text-secondary); line-height:1.7; font-size:0.95rem;">
+          <h3 style="color:var(--accent-gold); margin: 1rem 0 0.5rem;">1. Asynchronous Decoupled Bulk Processing</h3>
+          <p>
+            When processing hundreds or thousands of recipients, synchronous processing would cause client HTTP connection timeouts. 
+            We utilize FastAPI's <code>BackgroundTasks</code> worker pattern: the API validates the initial envelope, saves the job with status <code>PENDING</code>, immediately returns <code>202 Accepted</code> with a tracking <code>job_id</code>, and performs generation asynchronously.
+          </p>
+
+          <h3 style="color:var(--accent-gold); margin: 1rem 0 0.5rem;">2. Fault Isolation (Failure Handling)</h3>
+          <p>
+            A corrupted name, invalid email, or transient file I/O error on recipient #15 must never abort the remaining 999 recipients.
+            The worker encapsulates generation in per-recipient <code>try...except</code> boundaries. Erroneous records are flagged as <code>FAILED</code> with precise error causes, while successful ones receive <code>SUCCESS</code> status, resulting in a clean <code>PARTIALLY_COMPLETED</code> or <code>COMPLETED</code> aggregate job status.
+          </p>
+
+          <h3 style="color:var(--accent-gold); margin: 1rem 0 0.5rem;">3. Dual-Format Generation & Dynamic QR Verification</h3>
+          <p>
+            Using Pillow at 300 DPI, we generate high-resolution print-ready PDFs and web-crisp PNGs simultaneously. Every certificate embeds a dynamic QR code pointing to the live <code>/api/v1/certificates/verify/{code}</code> endpoint for instant tamper-proof validation.
+          </p>
+
+          <h3 style="color:var(--accent-gold); margin: 1rem 0 0.5rem;">4. Relational Data Model (SQLAlchemy)</h3>
+          <p>
+            Normalized schema separating <code>CertificateJob</code> (batch envelope and aggregate counters) from <code>CertificateRecord</code> (per-recipient status, file paths, and individual error reasons) with foreign key cascading and indexed certificate codes.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Image Preview Modal -->
+  <div id="previewModal" class="modal" onclick="closePreview()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 style="font-size:1.1rem; color:var(--text-primary);">Certificate Preview</h3>
+        <button class="modal-close" onclick="closePreview()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <img id="previewImg" src="" alt="Certificate Preview">
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
