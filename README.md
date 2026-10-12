@@ -19,7 +19,7 @@ An asynchronous backend API and processing engine built with **Python**, **FastA
 - **Dual Format Output:** Simultaneously exports print-ready **PDF** documents and web-optimized **PNG** images.
 - **Cryptographic & QR Code Verification:** Every certificate embeds a unique certificate code and a scannable **QR code** pointing to a public verification endpoint (`/api/v1/certificates/verify/{code}`).
 - **Batch ZIP Downloads:** One-click download of all successful certificates in a job bundled into a single ZIP archive.
-- **Interactive Studio UI:** A dashboard running at `http://127.0.0.1:8000/` for interactive testing, live progress bar polling, preview modals, and certificate verification.
+- **Executive Dark-Slate Studio UI:** A modern dashboard running at `http://127.0.0.1:8000/` featuring CSV drag-and-drop import, live recipient counting, real-time telemetry metrics, table search/filters, one-click clipboard copying, and a high-res lightbox preview modal.
 - **Interactive API Documentation:** Full OpenAPI Swagger (`/docs`) and ReDoc (`/redoc`) specifications.
 
 ---
