@@ -86,6 +86,32 @@ def verify_certificate(
         issuer_name=job.issuer_name if job else "N/A",
         issue_date=job.issue_date if job else "N/A",
         issued_at=cert.generated_at,
-        download_url=f"{settings.BASE_URL}{settings.API_V1_PREFIX}/certificates/{cert.id}/download?format=pdf",
         message="Certificate is authentic and verified."
     )
+
+
+@router.get(
+    "/sample-preview",
+    summary="Get sample certificate preview image",
+    response_description="Returns a rendered sample PNG certificate for template preview"
+)
+def get_sample_preview():
+    """
+    Returns a sample rendered certificate PNG for previewing the template design.
+    """
+    sample_png = settings.CERTIFICATES_DIR / "sample_preview.png"
+    if not sample_png.exists():
+        from app.services.generator import CertificateGenerator
+        png_path, _ = CertificateGenerator.generate_certificate(
+            recipient_name="Aarav Sharma",
+            event_name="Autonomous Drone Systems & Computer Vision",
+            title="Certificate of Achievement",
+            issuer_name="AEREO Academy",
+            issue_date="2026-10-12",
+            certificate_code="AEREO-SAMPLE-PREVIEW",
+            output_dir=settings.CERTIFICATES_DIR
+        )
+        return FileResponse(path=png_path, media_type="image/png")
+
+    return FileResponse(path=str(sample_png), media_type="image/png")
+
